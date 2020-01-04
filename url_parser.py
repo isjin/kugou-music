@@ -61,6 +61,7 @@ class UrlParser(object):
         while True:
             try:
                 response = requests.get(url, headers=headers, cookies=cookies_dict)
+                # print(response.text)
                 soup = BeautifulSoup(response.text, 'html.parser')
                 break
             except Exception as e:

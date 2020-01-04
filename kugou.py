@@ -6,6 +6,8 @@ from multiprocessing import Pool
 import url_parser
 import re
 import json
+import time
+from datetime import datetime
 
 
 class KuGou(object):
@@ -14,7 +16,7 @@ class KuGou(object):
         self.url_list = self.music_urls()
         self.download_path = './music/'
         self.old_urls = self.old_urls_init()
-        self.headers={
+        self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36'
         }
 
@@ -62,13 +64,25 @@ class KuGou(object):
             file = self.existed_file(file)
         return file
 
+    @staticmethod
+    def timestamp():
+        date = datetime.now()
+        time_tup = date.timetuple()
+        time_stamp = time.mktime(time_tup) * 1000 + date.microsecond / 1000
+        return str(int(time_stamp))
+
     def main(self, url_music):
         # url_music='http://www.kugou.com/song/#hash=BEDD046FB30A0C443CD6F854574B065E&album_id=9175221'
         # print(re.split(r'[#]', str(url_music)))
         hash_value = re.split(r'[#]', str(url_music))[1]
+        timestamp = self.timestamp()
+        # url_json = 'http://wwwapi.kugou.com/yy/index.php?r=play/getdata&callback' \
+        #            '=jQuery19108163565913646271_1541204734807&%s&dfid=1afPVH4fXLT50JqR2m1L7G9o&mid=6a240e3af22e4b69bd0e0037576e2537&platid=4&_=1576581297887' % hash_value
         url_json = 'http://wwwapi.kugou.com/yy/index.php?r=play/getdata&callback' \
-                   '=jQuery19108163565913646271_1541204734807&%s&dfid=1afPVH4fXLT50JqR2m1L7G9o&mid=6a240e3af22e4b69bd0e0037576e2537&platid=4&_=1567942000762' % hash_value
+                   '=jQuery19108163565913646271_1541204734807&%s&dfid=1afPVH4fXLT50JqR2m1L7G9o&mid=2375b0e69afe1ade917d8389088d7ee1&platid=4&_=%s' % (hash_value, timestamp)
+        # print(url_json)
         music_json = self.urlparser.soup_request(url_json)
+        # print(music_json)
         music_json = re.sub(r'jQuery\d+_\d+|[()]', '', str(music_json))
         music_json = json.loads(str(music_json)[0:-1])
         download_url = music_json['data']['play_url']
